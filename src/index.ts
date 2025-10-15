@@ -4,7 +4,9 @@ import cors from "cors";
 import { Request, Response } from "express";
 import nunjucks from "nunjucks";
 import { logger } from "./middlewares/loggerMiddleware";
-
+import { randomUUID } from "node:crypto";
+import * as path from "node:path";
+import { createFile, readThisFile, deleteFile } from "./fs/fsCRUDOperations";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -24,22 +26,34 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-app.post("/secret", (req: Request, res: Response) => {
+app.post("/secret",async (req: Request, res: Response) => {
+  
   const secret = req?.body?.secret;
+  const id = encodeURI(randomUUID());
+  const generatedLink = `${req.protocol}://${req.get("host")}/secret/${id}`;
+const secretFile = createFile(path.join(__dirname, "..","public", "secrets", `${id}.txt`), secret);
+
   // ... Secret speichern, Link generieren ...
-  console.log(req.body);
-  // res.render('secret_link.njk', { link: generatedLink });
+    res.render("index.html", {
+    id,
+    generatedLink
+  });
 });
 
-app.get("/secret/:secret", (req: Request, res: Response) => {
-  const secret = req.params.secret;
+app.get("/secret/:secretId",async (req: Request, res: Response) => {
+  const secretId = req.params.secretId;
 
-  if (!secret) {
+  if (!secretId) {
     return res.status(404).send("Secret not found!");
   }
-
+const filePath = path.join(__dirname, "..","public", "secrets", `${secretId}.txt`)
+let message = await readThisFile(filePath)
+if (message === ""){
+  message = "No secret found on this link"
+}
+await deleteFile(filePath);
   res.render("secret.html", {
-    secret,
+    message,
   });
 });
 

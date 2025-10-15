@@ -20,5 +20,10 @@
   ></textarea>
   <button type="submit">Absenden</button>
 </form>
+{% if id %}
+<p>
+Der Link zu deinem Secret ist <a href={{generatedLink}}>{{generatedLink}}</a><br>
+Bewahre ihn gut auf! Wenn der Link einmal aufgerufen wird, wird er zerstört!</p>
+{% endif %}
   </body>
 </html>
