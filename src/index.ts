@@ -26,32 +26,40 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-app.post("/secret",async (req: Request, res: Response) => {
-  
+app.post("/secret", async (req: Request, res: Response) => {
   const secret = req?.body?.secret;
   const id = encodeURI(randomUUID());
   const generatedLink = `${req.protocol}://${req.get("host")}/secret/${id}`;
-const secretFile = createFile(path.join(__dirname, "..","public", "secrets", `${id}.txt`), secret);
+  const secretFile = await createFile(
+    path.join(__dirname, "..", "public", "secrets", `${id}.txt`),
+    secret
+  );
 
   // ... Secret speichern, Link generieren ...
-    res.render("index.html", {
+  res.render("index.html", {
     id,
-    generatedLink
+    generatedLink,
   });
 });
 
-app.get("/secret/:secretId",async (req: Request, res: Response) => {
+app.get("/secret/:secretId", async (req: Request, res: Response) => {
   const secretId = req.params.secretId;
 
   if (!secretId) {
     return res.status(404).send("Secret not found!");
   }
-const filePath = path.join(__dirname, "..","public", "secrets", `${secretId}.txt`)
-let message = await readThisFile(filePath)
-if (message === ""){
-  message = "No secret found on this link"
-}
-await deleteFile(filePath);
+  const filePath = path.join(
+    __dirname,
+    "..",
+    "public",
+    "secrets",
+    `${secretId}.txt`
+  );
+  let message = await readThisFile(filePath);
+  if (message === "") {
+    message = "No secret found on this link";
+  }
+  await deleteFile(filePath);
   res.render("secret.html", {
     message,
   });
